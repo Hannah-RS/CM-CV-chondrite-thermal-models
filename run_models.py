@@ -1,0 +1,90 @@
+"""Run thermal models for a range of sizes and formation times to compare with CV chondrite peak unblocking temperatures"""
+import os
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+from constants import YR, tbpyrrh
+from thermal_functions import runModel
+
+
+#Import data from Clara
+cv_dat = pd.read_csv('../CV_chondrites/Summary-TH-data-for-Hannah.csv')
+cv_dat['max T (K)'] = cv_dat['Max T (deg C)'] + 273
+
+
+nst=18
+sts=np.linspace(1.6,5,nst)
+
+ns=31
+ss=np.linspace(5000,150000,ns)
+
+maxT = np.zeros((nst,ns))
+Tmelt= np.zeros((nst,ns))
+TmaxCM=np.zeros((nst,ns))
+CVagree = np.zeros((nst,ns)) #Could the CV chondrite data have come from this body?
+min_depth = np.zeros((nst,ns)) #Depth of the shallowest point that matches CV chondrite data
+max_depth = np.zeros((nst,ns)) #Depth of the deepest point that matches CV chondrite data
+tpyrrh = np.zeros((nst,ns)) #Time cooled through pyrrhotite blocking temp (593 K)
+ft=273.15
+cmt=700
+
+
+for i in range(0,nst):
+    for j in range(0,ns):
+        WR=0.7
+
+        nr=100
+        rad=ss[j]
+        nt=300
+        dt=4e4*YR
+        sT=180
+
+        Rs=np.linspace(0,rad,nr)
+        ts=np.arange(0,nt*dt,dt)
+
+        factor=1
+        Al_tot_abund=factor * 1.14/100
+        Al_26_27_start=5*10**-5   
+        Al26=Al_tot_abund*Al_26_27_start
+        
+        start=sts[i]*YR*1e6
+        temp_map=np.zeros((nt,nr))
+        temp_map,Al26_arr=runModel(start, nt, dt, Rs, nr, rad, sT, Al26, WR)
+        
+        maxT[i,j] = np.max(temp_map)
+        Tmelt[i,j]= ts[np.argmin(np.abs(ft-temp_map[:,0]))]
+        TmaxCM[i,j]=ts[np.argmin(np.abs(cmt-temp_map[:,0]))]
+
+        #find depth with given max temperature
+        Tmax_wdepth = np.max(temp_map,axis=0)
+        for Tval in cv_dat['max T (K)']:
+            if np.any(Tmax_wdepth > Tval)&(np.all(Tmax_wdepth < 1360)): #Check at least one position exceeds peak temp and no silicate melting
+                CVagree[i,j] = 1
+            else:
+                CVagree[i,j] = 0
+                break
+        if CVagree[i,j] == 1:
+            idx_min = np.where(Tmax_wdepth >= cv_dat['max T (K)'].min())[0][-1] #last value (i.e. shallowest that exceeds the peak temp)
+            min_depth[i,j] = rad-Rs[idx_min]
+            idx_max = np.where(Tmax_wdepth >= cv_dat['max T (K)'].max())[0][-1] #first value (i.e. deepest that exceeds the peak temp)
+            max_depth[i,j] = rad-Rs[idx_max]
+            tpyrrh[i,j] = (ts[temp_map[:,idx_max]>=tbpyrrh][-1])/(1e6*YR) #First time deepest depth cools through blocking temperature
+tpyrrh[CVagree==0] = np.nan
+
+#save results to npz files
+variables_to_save = {
+    'maxT': maxT,
+    'Tmelt': Tmelt,
+    'TmaxCM': TmaxCM,
+    'CVagree': CVagree,
+    'min_depth': min_depth,
+    'max_depth': max_depth,
+    'tpyrrh': tpyrrh,
+    'sts': sts,
+    'ss': ss,
+}
+
+for name, data in variables_to_save.items():
+    np.savez(f'Results/{name}.npz', data=data)
+
