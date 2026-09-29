@@ -4,19 +4,19 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from constants import YR, tneb
+from constants import YR, tneb, nst, ns
 from thermal_functions import runModel
 
 
 #Import data from Clara
-cv_dat = pd.read_csv('../CV_chondrites/Summary-TH-data-for-Hannah.csv')
+cv_dat = pd.read_csv('../CV_chondrites/Table-for-Hannah-0926.csv')
 cv_dat['max T (K)'] = cv_dat['Max T (deg C)'] + 273
 nm = len(cv_dat['Meteorite']) #number of meteorites
 
-nst=18
+#accretion time range
 sts=np.linspace(1.6,5,nst)
 
-ns=31
+#Radius range
 ss=np.linspace(5000,150000,ns)
 
 maxT = np.zeros((nst,ns))

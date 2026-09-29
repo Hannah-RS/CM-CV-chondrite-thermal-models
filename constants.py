@@ -16,6 +16,8 @@ Mf_react = 36/240
 melt_vs_react = dH_ice/dH_hyd 
 WR = Mf_react*melt_vs_react   
 
+nst=18 # Number of discrete accretion times.
+ns=31 #Number of discrete radii.
 
 # Radioactive isotopes:
 # Heat Production (W/kg)
