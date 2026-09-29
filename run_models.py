@@ -4,14 +4,14 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from constants import YR, tbpyrrh
+from constants import YR, tneb
 from thermal_functions import runModel
 
 
 #Import data from Clara
 cv_dat = pd.read_csv('../CV_chondrites/Summary-TH-data-for-Hannah.csv')
 cv_dat['max T (K)'] = cv_dat['Max T (deg C)'] + 273
-
+nm = len(cv_dat['Meteorite']) #number of meteorites
 
 nst=18
 sts=np.linspace(1.6,5,nst)
@@ -20,15 +20,9 @@ ns=31
 ss=np.linspace(5000,150000,ns)
 
 maxT = np.zeros((nst,ns))
-Tmelt= np.zeros((nst,ns))
-TmaxCM=np.zeros((nst,ns))
 CVagree = np.zeros((nst,ns)) #Could the CV chondrite data have come from this body?
-min_depth = np.zeros((nst,ns)) #Depth of the shallowest point that matches CV chondrite data
-max_depth = np.zeros((nst,ns)) #Depth of the deepest point that matches CV chondrite data
-tpyrrh = np.zeros((nst,ns)) #Time cooled through pyrrhotite blocking temp (593 K)
-ft=273.15
-cmt=700
-
+depth = np.zeros((nst,ns,nm)) #Depth of each meteorite in the body (m)  
+Tneb = np.zeros((nst,ns,nm)) #Temperature at each meteorite position the time of the dissipation of the nebula field (K)
 
 for i in range(0,nst):
     for j in range(0,ns):
@@ -53,8 +47,6 @@ for i in range(0,nst):
         temp_map,Al26_arr=runModel(start, nt, dt, Rs, nr, rad, sT, Al26, WR)
         
         maxT[i,j] = np.max(temp_map)
-        Tmelt[i,j]= ts[np.argmin(np.abs(ft-temp_map[:,0]))]
-        TmaxCM[i,j]=ts[np.argmin(np.abs(cmt-temp_map[:,0]))]
 
         #find depth with given max temperature
         Tmax_wdepth = np.max(temp_map,axis=0)
@@ -65,22 +57,19 @@ for i in range(0,nst):
                 CVagree[i,j] = 0
                 break
         if CVagree[i,j] == 1:
-            idx_min = np.where(Tmax_wdepth >= cv_dat['max T (K)'].min())[0][-1] #last value (i.e. shallowest that exceeds the peak temp)
-            min_depth[i,j] = rad-Rs[idx_min]
-            idx_max = np.where(Tmax_wdepth >= cv_dat['max T (K)'].max())[0][-1] #first value (i.e. deepest that exceeds the peak temp)
-            max_depth[i,j] = rad-Rs[idx_max]
-            tpyrrh[i,j] = (ts[temp_map[:,idx_max]>=tbpyrrh][-1])/(1e6*YR) #First time deepest depth cools through blocking temperature
-tpyrrh[CVagree==0] = np.nan
+            for k, Tval in enumerate(cv_dat['max T (K)']):
+                idr = np.where(Tmax_wdepth >= Tval)[0][-1] #position of location with this peak temp - shallowest position it is hotter
+                depth[i,j,k] = rad-Rs[idr]
+                idt = np.where(ts>tneb)[0][0] #index of time of nebula field dissipation
+                Tneb[i,j,k] = temp_map[idt,idr] #Temperature at the time of nebula field dissipation
+Tneb[CVagree==0] = np.nan
 
 #save results to npz files
 variables_to_save = {
     'maxT': maxT,
-    'Tmelt': Tmelt,
-    'TmaxCM': TmaxCM,
     'CVagree': CVagree,
-    'min_depth': min_depth,
-    'max_depth': max_depth,
-    'tpyrrh': tpyrrh,
+    'depth': depth,
+    'Tneb': Tneb,
     'sts': sts,
     'ss': ss,
 }

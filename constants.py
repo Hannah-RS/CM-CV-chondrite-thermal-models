@@ -61,3 +61,4 @@ H0s = dict({'U238': H0U238,
 tbpyrrh = 325 + 273 #pyrrhotite blocking temperature (K)
 tbmag = 580 + 273 #magnetite blocking temperature (K)
 tbtae = 360 + 273 #taenite blocking temperature (K)
+tneb = 4.5*1e6*YR #time of dissipation of the nebula field (s)
