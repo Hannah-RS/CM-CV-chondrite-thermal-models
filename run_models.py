@@ -4,7 +4,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from constants import YR, tneb, nst, ns
+from constants import YR, tneb, nst, ns, tstart, tstop, rstart, rstop
 from thermal_functions import runModel
 
 
@@ -14,10 +14,10 @@ cv_dat['max T (K)'] = cv_dat['Max T (deg C)'] + 273
 nm = len(cv_dat['Meteorite']) #number of meteorites
 
 #accretion time range
-sts=np.linspace(1.6,5,nst)
+sts=np.linspace(tstart,tstop,nst)
 
 #Radius range
-ss=np.linspace(5000,150000,ns)
+ss=np.linspace(rstart,rstop,ns)
 
 maxT = np.zeros((nst,ns))
 CVagree = np.zeros((nst,ns)) #Could the CV chondrite data have come from this body?
