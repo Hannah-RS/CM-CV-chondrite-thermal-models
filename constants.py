@@ -22,6 +22,7 @@ nst=18 # Number of discrete accretion times.
 ns=61 #Number of discrete radii.
 rstart = 5000
 rstop = 150000
+CVtype = 'Red' # 'all', 'OxA', 'OxB', 'Red'
 
 # Radioactive isotopes:
 # Heat Production (W/kg)

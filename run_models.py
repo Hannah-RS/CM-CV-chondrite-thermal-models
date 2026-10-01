@@ -4,13 +4,15 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from constants import YR, tneb, nst, ns, tstart, tstop, rstart, rstop
+from constants import YR, tneb, nst, ns, tstart, tstop, rstart, rstop, CVtype
 from thermal_functions import runModel
 
 
 #Import data from Clara
 cv_dat = pd.read_csv('../CV_chondrites/Table-for-Hannah-0926.csv')
 cv_dat['max T (K)'] = cv_dat['Max T (deg C)'] + 273
+if CVtype != 'all':
+    cv_dat = cv_dat[cv_dat['Group'] == CVtype] #filter for subset of CV chondrites
 nm = len(cv_dat['Meteorite']) #number of meteorites
 
 #accretion time range
@@ -75,5 +77,5 @@ variables_to_save = {
 }
 
 for name, data in variables_to_save.items():
-    np.savez(f'Results/{name}.npz', data=data)
+    np.savez(f'Results/{CVtype}/{name}.npz', data=data)
 
