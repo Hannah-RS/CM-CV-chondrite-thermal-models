@@ -16,7 +16,7 @@ nm = len(cv_dat['Meteorite']) #number of meteorites
 
 nrmtot = np.zeros((nst,ns,nm)) #NRM of each meteorite for each accretion time and planetesimal size
 Tblocks = np.array([tbpyrrh, tbmag, tbtae]) #blocking temperatures of each carrier
-
+carriers = ['pyrrh', 'magn', 'tae'] #names of each carrier
 for i in range(nst):
     for j in range(ns):
         for k, Tmub in enumerate(cv_dat['max T (K)']):
@@ -25,8 +25,8 @@ for i in range(nst):
             if np.isnan(Tneb[i,j,k]): #if Tneb is nan, set NRM to nan
                 nrmtot[i,j,k] = np.nan
             else:
-                for Tblock in Tblocks:
-                    nrma = nrm(Tblock, Tmub, Tneb[i,j,k])
+                for Tblock, carrier in zip(Tblocks,carriers):
+                    nrma = nrm(Tblock, Tmub, Tneb[i,j,k], carrier,300)
                 nrmtot[i,j,k] = multi_carry(nrma, f)
 
 np.savez(f'Results/{CVtype}/nrmtot.npz', data=nrmtot)
