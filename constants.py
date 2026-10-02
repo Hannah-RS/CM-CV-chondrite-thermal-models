@@ -69,3 +69,4 @@ tbpyrrh = 325 + 273 #pyrrhotite blocking temperature (K)
 tbmag = 580 + 273 #magnetite blocking temperature (K)
 tbtae = 360 + 273 #taenite blocking temperature (K)
 tneb = 4.5*1e6*YR #time of dissipation of the nebula field (s)
+fTblock_min = 0.35 #Minimum temperature fraction of blocking temperature in experimental data

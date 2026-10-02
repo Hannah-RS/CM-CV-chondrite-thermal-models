@@ -2,8 +2,9 @@
 import numpy as np
 import pandas as pd
 from pmag_functions import nrm, multi_carry
-from constants import tbpyrrh, tbmag, tbtae, ns, nst, CVtype
+from constants import tbpyrrh, tbmag, tbtae, ns, nst#, CVtype
 
+CVtype = 'Red'
 #load savedtemperature at the time of nebula field dissipation
 Tneb = np.load(f'Results/{CVtype}/Tneb.npz')['data']
 
@@ -26,7 +27,7 @@ for i in range(nst):
                 nrmtot[i,j,k] = np.nan
             else:
                 for Tblock, carrier in zip(Tblocks,carriers):
-                    nrma = nrm(Tblock, Tmub, Tneb[i,j,k], carrier,300)
+                    nrma = nrm(Tblock, Tmub, Tneb[i,j,k])
                 nrmtot[i,j,k] = multi_carry(nrma, f)
 
 np.savez(f'Results/{CVtype}/nrmtot.npz', data=nrmtot)
